@@ -14,6 +14,91 @@ resource "openstack_compute_floatingip_v2" "ext" {
   pool = "ext-net"
 }
 
+resource "openstack_networking_secgroup_v2" "rabbit_secgroup" {
+  name = "rabbitmq_site"
+  description = "RabbitMQ for local and site networks."
+}
+
+resource "openstack_networking_secgroup_rule_v2" "rabbit_rule_1" {
+  direction = "ingress"
+  ethertype = "IPv4"
+  protocol = "tcp"
+  port_range_min = 4369
+  port_range_max = 4369
+  remote_ip_prefix = "10.0.42.0/24"
+  security_group_id = "${openstack_networking_secgroup_v2.rabbit_secgroup.id}"
+}
+
+resource "openstack_networking_secgroup_rule_v2" "rabbit_rule_2" {
+  direction = "egress"
+  ethertype = "IPv4"
+  protocol = "tcp"
+  port_range_min = 4369
+  port_range_max = 4369
+  remote_ip_prefix = "10.0.42.0/24"
+  security_group_id = "${openstack_networking_secgroup_v2.rabbit_secgroup.id}"
+}
+
+resource "openstack_networking_secgroup_rule_v2" "rabbit_rule_3" {
+  direction = "ingress"
+  ethertype = "IPv4"
+  protocol = "tcp"
+  port_range_min = 5671
+  port_range_max = 5672
+  remote_ip_prefix = "10.0.42.0/24"
+  security_group_id = "${openstack_networking_secgroup_v2.rabbit_secgroup.id}"
+}
+
+resource "openstack_networking_secgroup_rule_v2" "rabbit_rule_4" {
+  direction = "egress"
+  ethertype = "IPv4"
+  protocol = "tcp"
+  port_range_min = 5671
+  port_range_max = 5672
+  remote_ip_prefix = "10.0.42.0/24"
+  security_group_id = "${openstack_networking_secgroup_v2.rabbit_secgroup.id}"
+}
+
+resource "openstack_networking_secgroup_rule_v2" "rabbit_rule_5" {
+  direction = "ingress"
+  ethertype = "IPv4"
+  protocol = "tcp"
+  port_range_min = 25672
+  port_range_max = 25672
+  remote_ip_prefix = "10.0.42.0/24"
+  security_group_id = "${openstack_networking_secgroup_v2.rabbit_secgroup.id}"
+}
+
+resource "openstack_networking_secgroup_rule_v2" "rabbit_rule_6" {
+  direction = "egress"
+  ethertype = "IPv4"
+  protocol = "tcp"
+  port_range_min = 25672
+  port_range_max = 25672
+  remote_ip_prefix = "10.0.42.0/24"
+  security_group_id = "${openstack_networking_secgroup_v2.rabbit_secgroup.id}"
+}
+
+resource "openstack_networking_secgroup_rule_v2" "rabbit_rule_7" {
+  direction = "ingress"
+  ethertype = "IPv4"
+  protocol = "tcp"
+  port_range_min = 35099
+  port_range_max = 35099
+  remote_ip_prefix = "10.0.42.0/24"
+  security_group_id = "${openstack_networking_secgroup_v2.rabbit_secgroup.id}"
+}
+
+resource "openstack_networking_secgroup_rule_v2" "rabbit_rule_8" {
+  direction = "egress"
+  ethertype = "IPv4"
+  protocol = "tcp"
+  port_range_min = 35099
+  port_range_max = 35099
+  remote_ip_prefix = "10.0.42.0/24"
+  security_group_id = "${openstack_networking_secgroup_v2.rabbit_secgroup.id}"
+}
+
 # RabbitMQ Nebula Cluster.
 resource "openstack_compute_instance_v2" "rabbit_instances" {
   count = "${var.count}"
@@ -21,7 +106,7 @@ resource "openstack_compute_instance_v2" "rabbit_instances" {
   image_id = "e5607bd7-434d-4bf5-91ad-82b689b7c03e"
   flavor_name = "m4.large"
   key_pair = "rabbit_lsst"
-  security_groups = ["default", "remote SSH", "remote mosh", "remote https"]
+  security_groups = ["default", "remote SSH", "remote mosh", "remote https", "rabbitmq_site"]
 
   user_data = "${file("cloud-config.yaml")}"
   network {
