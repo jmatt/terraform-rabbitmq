@@ -1,8 +1,3 @@
-# Use aws.
-provider "aws" {
-  region = "us-west-2"
-}
-
 # Add rabbit.lsst.codes to rabbit-0.lsst.codes
 resource "aws_route53_record" "rabbit_route53" {
   zone_id = "Z3TH0HRSNU67AM"
@@ -39,4 +34,13 @@ resource "aws_route53_record" "rabbit_site_numbered_route53" {
   type = "A"
   ttl = "300"
   records = ["${element(openstack_compute_instance_v2.rabbit_instances.*.network.0.fixed_ip_v4, count.index)}"]
+}
+
+# Add rabbit.lsst.codes to rabbit-0.lsst.codes
+resource "aws_route53_record" "rabbit_aws_route53" {
+  zone_id = "Z3TH0HRSNU67AM"
+  name = "rabbit-aws.lsst.codes"
+  type = "A"
+  ttl = "300"
+  records = ["${aws_instance.rabbit_aws_shovel.public_ip}"]
 }
