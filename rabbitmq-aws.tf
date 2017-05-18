@@ -33,14 +33,14 @@ resource "aws_instance" "rabbit_aws_shovel" {
   ami           = "${data.aws_ami.ubuntu.id}"
   instance_type = "t2.micro"
   key_name      = "rabbit_lsst-key"
-
   tags {
     Name = "RabbitMQ"
   }
 
   security_groups = [
     "${aws_security_group.rabbitmq_allow_ssh.name}",
-    "${aws_security_group.rabbitmq_allow_egress.name}"
+    "${aws_security_group.rabbitmq_allow_egress.name}",
+    "${aws_security_group.rabbitmq_allow_local.name}"
   ]
 }
 
@@ -63,6 +63,25 @@ resource "aws_security_group" "rabbitmq_allow_ssh" {
   }
 }
 
+resource "aws_security_group" "rabbitmq_allow_shovel" {
+  name        = "rabbitmq_allow_shovel"
+  description = "Allow shovel traffic"
+
+  ingress {
+    from_port   = 5671
+    to_port     = 5672
+    protocol    = "TCP"
+    cidr_blocks = ["141.142.0.0/16"]
+  }
+
+  egress {
+    from_port       = 5671
+    to_port         = 5672
+    protocol        = "TCP"
+    cidr_blocks     = ["141.142.0.0/16"]
+  }
+}
+
 resource "aws_security_group" "rabbitmq_allow_egress" {
   name        = "rabbitmq_allow_egress"
   description = "Allow outbound traffic"
@@ -72,5 +91,51 @@ resource "aws_security_group" "rabbitmq_allow_egress" {
     to_port         = 0
     protocol        = "-1"
     cidr_blocks     = ["0.0.0.0/0"]
+  }
+}
+
+# resource "aws_vpc" "rabbitmq_vpc" {
+#   cidr_block = "10.1.42.0/24"
+
+#   tags {
+#     Name = "RabbitMQ"
+#   }
+# }
+
+resource "aws_security_group" "rabbitmq_allow_rabbitmq" {
+  name        = "rabbitmq_allow_rabbitmq"
+  description = "Allow rabbitmq egress traffic."
+
+  # ingress {
+  #   from_port   = 22
+  #   to_port     = 22
+  #   protocol    = "TCP"
+  #   cidr_blocks = ["0.0.0.0/0"]
+  # }
+
+  egress {
+    from_port       = 22
+    to_port         = 22
+    protocol        = "TCP"
+    cidr_blocks     = ["0.0.0.0/0"]
+  }
+}
+
+resource "aws_security_group" "rabbitmq_allow_local" {
+  name        = "rabbitmq_allow_local"
+  description = "Allow rabbitmq local traffic."
+
+  ingress {
+    from_port   = 0
+    to_port     = 0
+    protocol    = -1
+    cidr_blocks = ["127.0.0.1/32"]
+  }
+
+  egress {
+    from_port       = 0
+    to_port         = 0
+    protocol        = -1
+    cidr_blocks     = ["127.0.0.1/32"]
   }
 }

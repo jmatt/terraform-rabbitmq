@@ -49,6 +49,16 @@ resource "openstack_networking_secgroup_rule_v2" "rabbit_rule_3" {
   security_group_id = "${openstack_networking_secgroup_v2.rabbit_secgroup.id}"
 }
 
+resource "openstack_networking_secgroup_rule_v2" "rabbit_rule_3_aws" {
+  direction = "ingress"
+  ethertype = "IPv4"
+  protocol = "tcp"
+  port_range_min = 5671
+  port_range_max = 5672
+  remote_ip_prefix = "${aws_instance.rabbit_aws_shovel.public_ip}/32"
+  security_group_id = "${openstack_networking_secgroup_v2.rabbit_secgroup.id}"
+}
+
 resource "openstack_networking_secgroup_rule_v2" "rabbit_rule_4" {
   direction = "egress"
   ethertype = "IPv4"
@@ -56,6 +66,16 @@ resource "openstack_networking_secgroup_rule_v2" "rabbit_rule_4" {
   port_range_min = 5671
   port_range_max = 5672
   remote_ip_prefix = "10.0.42.0/24"
+  security_group_id = "${openstack_networking_secgroup_v2.rabbit_secgroup.id}"
+}
+
+resource "openstack_networking_secgroup_rule_v2" "rabbit_rule_4_aws" {
+  direction = "egress"
+  ethertype = "IPv4"
+  protocol = "tcp"
+  port_range_min = 5671
+  port_range_max = 5672
+  remote_ip_prefix = "${aws_instance.rabbit_aws_shovel.public_ip}/32"
   security_group_id = "${openstack_networking_secgroup_v2.rabbit_secgroup.id}"
 }
 
@@ -115,3 +135,10 @@ resource "openstack_compute_instance_v2" "rabbit_instances" {
     floating_ip = "${element(openstack_compute_floatingip_v2.ext.*.address, count.index)}"
   }
 }
+
+# resource "openstack_compute_floatingip_associate_v2" "rabbit_floatingip" {
+#   count = "${var.count}"
+#   floating_ip = "${element(openstack_compute_floatingip_v2.ext.*.address, count.index)}"
+#   instance_id = "${element(openstack_compute_instance_v2.rabbit_instances.*.id, count.index)}"
+#   fixed_ip = "${element(openstack_compute_instance_v2.rabbit_instances.*.network.0.fixed_ip_v4, count.index)}"
+# }
